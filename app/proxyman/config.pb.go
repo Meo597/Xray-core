@@ -192,6 +192,7 @@ type SniffingConfig struct {
 	// message.
 	MetadataOnly bool `protobuf:"varint,4,opt,name=metadata_only,json=metadataOnly,proto3" json:"metadata_only,omitempty"`
 	RouteOnly    bool `protobuf:"varint,5,opt,name=route_only,json=routeOnly,proto3" json:"route_only,omitempty"`
+	OverrideIp   bool `protobuf:"varint,6,opt,name=override_ip,json=overrideIp,proto3" json:"override_ip,omitempty"`
 }
 
 func (x *SniffingConfig) Reset() {
@@ -255,6 +256,13 @@ func (x *SniffingConfig) GetMetadataOnly() bool {
 func (x *SniffingConfig) GetRouteOnly() bool {
 	if x != nil {
 		return x.RouteOnly
+	}
+	return false
+}
+
+func (x *SniffingConfig) GetOverrideIp() bool {
+	if x != nil {
+		return x.OverrideIp
 	}
 	return false
 }
