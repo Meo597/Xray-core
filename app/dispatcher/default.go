@@ -293,7 +293,7 @@ func (d *DefaultDispatcher) Dispatch(ctx context.Context, destination net.Destin
 					ob.RouteTarget = destination
 					if sniffingRequest.OverrideIp && !ob.OriginalTarget.Address.Family().IsDomain() {
 						ips, err := d.dns.LookupIP(domain, dns.IPOption{
-							IPv4Enable: ob.OriginalTarget.Address.Family().IsIPv4(),
+							IPv4Enable: ob.OriginalTarget.Address.Family().IsIPv4() || ob.OriginalTarget.Address.Family().IsDomain(),
 							IPv6Enable: ob.OriginalTarget.Address.Family().IsIPv6(),
 							FakeEnable: false,
 						})
@@ -360,7 +360,7 @@ func (d *DefaultDispatcher) DispatchLink(ctx context.Context, destination net.De
 				ob.RouteTarget = destination
 				if sniffingRequest.OverrideIp && !ob.OriginalTarget.Address.Family().IsDomain() {
 					ips, err := d.dns.LookupIP(domain, dns.IPOption{
-						IPv4Enable: ob.OriginalTarget.Address.Family().IsIPv4(),
+						IPv4Enable: ob.OriginalTarget.Address.Family().IsIPv4() || ob.OriginalTarget.Address.Family().IsDomain(),
 						IPv6Enable: ob.OriginalTarget.Address.Family().IsIPv6(),
 						FakeEnable: false,
 					})
