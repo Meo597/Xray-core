@@ -79,6 +79,7 @@ type SniffingRequest struct {
 	Enabled                        bool
 	MetadataOnly                   bool
 	RouteOnly                      bool
+	OverrideIp                     bool
 }
 
 // Content is the metadata of the connection content.
