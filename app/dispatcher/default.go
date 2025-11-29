@@ -327,7 +327,7 @@ func (d *DefaultDispatcher) Dispatch(ctx context.Context, destination net.Destin
 				if fkr0, ok := d.fdns.(dns.FakeDNSEngineRev0); ok && fkr0.IsIPInIPPool(ob.Target.Address) {
 					isFakeIP = true
 				}
-				if sniffingRequest.RouteOnly && protocol != "fakedns" && protocol != "fakedns+others" && !isFakeIP {
+				if sniffingRequest.OverrideStrategy == session.SniffOverrideStrategy_AsIs && protocol != "fakedns" && protocol != "fakedns+others" && !isFakeIP {
 					ob.RouteTarget = destination
 				} else {
 					ob.Target = destination
@@ -382,7 +382,7 @@ func (d *DefaultDispatcher) DispatchLink(ctx context.Context, destination net.De
 			if fkr0, ok := d.fdns.(dns.FakeDNSEngineRev0); ok && fkr0.IsIPInIPPool(ob.Target.Address) {
 				isFakeIP = true
 			}
-			if sniffingRequest.RouteOnly && protocol != "fakedns" && protocol != "fakedns+others" && !isFakeIP {
+			if sniffingRequest.OverrideStrategy == session.SniffOverrideStrategy_AsIs && protocol != "fakedns" && protocol != "fakedns+others" && !isFakeIP {
 				ob.RouteTarget = destination
 			} else {
 				ob.Target = destination

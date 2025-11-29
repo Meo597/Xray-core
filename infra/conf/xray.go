@@ -3,8 +3,6 @@ package conf
 import (
 	"context"
 	"encoding/json"
-	"log"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -48,50 +46,90 @@ var (
 		"wireguard":   func() interface{} { return &WireGuardConfig{IsClient: true} },
 	}, "protocol", "settings")
 
-	ctllog = log.New(os.Stderr, "xctl> ", 0)
+	// ctllog = log.New(os.Stderr, "xctl> ", 0)
 )
 
 type SniffingConfig struct {
-	Enabled         bool        `json:"enabled"`
-	DestOverride    *StringList `json:"destOverride"`
-	DomainsExcluded *StringList `json:"domainsExcluded"`
-	MetadataOnly    bool        `json:"metadataOnly"`
-	RouteOnly       bool        `json:"routeOnly"`
+	Enabled          bool        `json:"enabled"`
+	DestOverride     *StringList `json:"destOverride"`
+	DomainsExcluded  *StringList `json:"domainsExcluded"`
+	MetadataOnly     bool        `json:"metadataOnly"`
+	RouteOnly        *bool       `json:"routeOnly"`
+	OverrideStrategy string      `json:"overrideStrategy"`
 }
 
 // Build implements Buildable.
 func (c *SniffingConfig) Build() (*proxyman.SniffingConfig, error) {
-	var p []string
+	var destinationOverride []string
 	if c.DestOverride != nil {
 		for _, protocol := range *c.DestOverride {
 			switch strings.ToLower(protocol) {
 			case "http":
-				p = append(p, "http")
+				destinationOverride = append(destinationOverride, "http")
 			case "tls", "https", "ssl":
-				p = append(p, "tls")
+				destinationOverride = append(destinationOverride, "tls")
 			case "quic":
-				p = append(p, "quic")
+				destinationOverride = append(destinationOverride, "quic")
 			case "fakedns", "fakedns+others":
-				p = append(p, "fakedns")
+				destinationOverride = append(destinationOverride, "fakedns")
 			default:
 				return nil, errors.New("unknown protocol: ", protocol)
 			}
 		}
 	}
 
-	var d []string
+	var domainsExcluded []string
 	if c.DomainsExcluded != nil {
 		for _, domain := range *c.DomainsExcluded {
-			d = append(d, strings.ToLower(domain))
+			domainsExcluded = append(domainsExcluded, strings.ToLower(domain))
+		}
+	}
+
+	var overrideStrategy proxyman.OverrideStrategy
+	switch strings.ToLower(c.OverrideStrategy) {
+	case "domain", "":
+		overrideStrategy = proxyman.OverrideStrategy_DOMAIN
+	case "asis", "routeonly", "no", "nooverride":
+		overrideStrategy = proxyman.OverrideStrategy_AS_IS
+	case "useip":
+		overrideStrategy = proxyman.OverrideStrategy_USE_IP
+	case "useipv4":
+		overrideStrategy = proxyman.OverrideStrategy_USE_IP4
+	case "useipv6":
+		overrideStrategy = proxyman.OverrideStrategy_USE_IP6
+	case "useipv4v6":
+		overrideStrategy = proxyman.OverrideStrategy_USE_IP46
+	case "useipv6v4":
+		overrideStrategy = proxyman.OverrideStrategy_USE_IP64
+	case "forceip":
+		overrideStrategy = proxyman.OverrideStrategy_FORCE_IP
+	case "forceipv4":
+		overrideStrategy = proxyman.OverrideStrategy_FORCE_IP4
+	case "forceipv6":
+		overrideStrategy = proxyman.OverrideStrategy_FORCE_IP6
+	case "forceipv4v6":
+		overrideStrategy = proxyman.OverrideStrategy_FORCE_IP46
+	case "forceipv6v4":
+		overrideStrategy = proxyman.OverrideStrategy_FORCE_IP64
+	default:
+		return nil, errors.New("unsupported override strategy: ", c.OverrideStrategy)
+	}
+
+	if c.RouteOnly != nil {
+		if c.OverrideStrategy != "" {
+			return nil, errors.New("cannot combine routeOnly with overrideStrategy")
+		}
+		if *c.RouteOnly {
+			overrideStrategy = proxyman.OverrideStrategy_AS_IS
 		}
 	}
 
 	return &proxyman.SniffingConfig{
 		Enabled:             c.Enabled,
-		DestinationOverride: p,
-		DomainsExcluded:     d,
+		DestinationOverride: destinationOverride,
+		DomainsExcluded:     domainsExcluded,
 		MetadataOnly:        c.MetadataOnly,
-		RouteOnly:           c.RouteOnly,
+		OverrideStrategy:    overrideStrategy,
 	}, nil
 }
 
@@ -120,13 +158,13 @@ func (m *MuxConfig) Build() (*proxyman.MultiplexingConfig, error) {
 }
 
 type InboundDetourConfig struct {
-	Protocol       string                         `json:"protocol"`
-	PortList       *PortList                      `json:"port"`
-	ListenOn       *Address                       `json:"listen"`
-	Settings       *json.RawMessage               `json:"settings"`
-	Tag            string                         `json:"tag"`
-	StreamSetting  *StreamConfig                  `json:"streamSettings"`
-	SniffingConfig *SniffingConfig                `json:"sniffing"`
+	Protocol       string           `json:"protocol"`
+	PortList       *PortList        `json:"port"`
+	ListenOn       *Address         `json:"listen"`
+	Settings       *json.RawMessage `json:"settings"`
+	Tag            string           `json:"tag"`
+	StreamSetting  *StreamConfig    `json:"streamSettings"`
+	SniffingConfig *SniffingConfig  `json:"sniffing"`
 }
 
 // Build implements Buildable.

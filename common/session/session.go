@@ -76,13 +76,30 @@ type Outbound struct {
 	CanSpliceCopy int
 }
 
+type SniffOverrideStrategy byte
+
+const (
+	SniffOverrideStrategy_AsIs SniffOverrideStrategy = iota
+	SniffOverrideStrategy_UseIP
+	SniffOverrideStrategy_UseIP4
+	SniffOverrideStrategy_UseIP6
+	SniffOverrideStrategy_UseIP46
+	SniffOverrideStrategy_UseIP64
+	SniffOverrideStrategy_ForceIP
+	SniffOverrideStrategy_ForceIP4
+	SniffOverrideStrategy_ForceIP6
+	SniffOverrideStrategy_ForceIP46
+	SniffOverrideStrategy_ForceIP64
+	SniffOverrideStrategy_Domain
+)
+
 // SniffingRequest controls the behavior of content sniffing. They are from inbound config. Read-only
 type SniffingRequest struct {
 	ExcludeForDomain               []string
 	OverrideDestinationForProtocol []string
 	Enabled                        bool
 	MetadataOnly                   bool
-	RouteOnly                      bool
+	OverrideStrategy               SniffOverrideStrategy
 }
 
 // Content is the metadata of the connection content. Mainly used for routing.
