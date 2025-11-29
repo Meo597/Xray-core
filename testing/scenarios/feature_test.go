@@ -537,6 +537,7 @@ func TestDomainSniffing(t *testing.T) {
 					SniffingSettings: &proxyman.SniffingConfig{
 						Enabled:             true,
 						DestinationOverride: []string{"tls"},
+						OverrideStrategy:    proxyman.OverrideStrategy_DOMAIN,
 					},
 				}),
 				ProxySettings: serial.ToTypedMessage(&dokodemo.Config{
